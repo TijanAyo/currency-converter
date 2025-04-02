@@ -1,7 +1,72 @@
 import 'package:flutter/material.dart';
 
-class HomeTextWidget extends StatelessWidget {
-  const HomeTextWidget({super.key});
+class CurrencyConverter extends StatefulWidget {
+  const CurrencyConverter({super.key});
+
+  @override
+  State<CurrencyConverter> createState() => _CurrencyConverterState();
+}
+
+class _CurrencyConverterState extends State<CurrencyConverter> {
+  final TextEditingController amountController = TextEditingController();
+  final TextEditingController convertedToController = TextEditingController();
+  String selectedCurrency = 'USD';
+  String selectedCurrencyTo = 'NGN';
+  List<String> currencies = [
+    'USD',
+    'EUR',
+    'GBP',
+    'CAD',
+    'AUD',
+    'JPY',
+    'CHF',
+    'CNY',
+    'INR',
+    'BRL',
+    'MXN',
+  ];
+
+  Map<String, int> exchangeRates = {
+    'USD': 1500,
+    'EUR': 1300,
+    'GBP': 1200,
+    'CAD': 1400,
+    'AUD': 1600,
+    'JPY': 10,
+    'CHF': 1400,
+    'CNY': 200,
+    'INR': 10,
+    'BRL': 10,
+    'MXN': 10,
+  };
+
+  @override
+  void initState() {
+    super.initState();
+    amountController.addListener(_convertCurrency);
+  }
+
+  @override
+  void dispose() {
+    amountController.dispose();
+    convertedToController.dispose();
+    super.dispose();
+  }
+
+  void _convertCurrency() {
+    double amount, convertedValue;
+    String amountText = amountController.text.trim();
+
+    if (amountText.isNotEmpty) {
+      amount = double.parse(amountText);
+      convertedValue = amount * exchangeRates[selectedCurrency]!;
+      setState(() {
+        convertedToController.text = convertedValue.toStringAsFixed(0);
+      });
+    } else {
+      convertedToController.text = "";
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -14,8 +79,12 @@ class HomeTextWidget extends StatelessWidget {
       ),
     );
 
-    Widget customTextFieldSection({required String labelText}) {
+    Widget customTextFieldSection({
+      required String labelText,
+      required TextEditingController controller,
+    }) {
       return TextField(
+        controller: controller,
         style: const TextStyle(color: Colors.white),
         keyboardType: const TextInputType.numberWithOptions(decimal: true),
         decoration: InputDecoration(
@@ -56,8 +125,8 @@ class HomeTextWidget extends StatelessWidget {
             children: [
               Padding(
                 padding: const EdgeInsets.all(10.0),
-                child: const Text(
-                  "Convert EUR to USD at the real exchange rate",
+                child: Text(
+                  "Convert $selectedCurrencyTo to $selectedCurrency at the real exchange rate",
                   style: TextStyle(
                     color: Color.fromRGBO(159, 232, 112, 1),
                     fontFamily: 'san-serif',
@@ -66,10 +135,44 @@ class HomeTextWidget extends StatelessWidget {
                   ),
                 ),
               ),
+
               Padding(
                 padding: const EdgeInsets.all(10.0),
-                child: customTextFieldSection(labelText: "Amount"),
+                child: DropdownButton<String>(
+                  value: selectedCurrency,
+                  onChanged: (String? value) {
+                    setState(() {
+                      selectedCurrency = value!;
+                    });
+                  },
+                  items:
+                      currencies.map((String currency) {
+                        return DropdownMenuItem<String>(
+                          value: currency,
+                          child: Text(
+                            currency,
+                            style: const TextStyle(
+                              fontFamily: "sans-serif",
+                              fontSize: 16,
+                              color: Color.fromRGBO(159, 232, 112, 1),
+                            ),
+                          ),
+                        );
+                      }).toList(),
+                  dropdownColor: const Color.fromRGBO(34, 70, 13, 0.902),
+                ),
               ),
+
+              // Amount text field
+              Padding(
+                padding: const EdgeInsets.all(10.0),
+                child: customTextFieldSection(
+                  labelText: "Amount",
+                  controller: amountController,
+                ),
+              ),
+
+              // Swap icon
               Padding(
                 padding: const EdgeInsets.all(1.0),
                 child: const Icon(
@@ -78,9 +181,14 @@ class HomeTextWidget extends StatelessWidget {
                   color: Colors.white,
                 ),
               ),
+
+              // Converted to text field
               Padding(
                 padding: const EdgeInsets.all(10.0),
-                child: customTextFieldSection(labelText: "Converted to"),
+                child: customTextFieldSection(
+                  labelText: "Converted to",
+                  controller: convertedToController,
+                ),
               ),
 
               ElevatedButton(
