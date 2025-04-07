@@ -136,6 +136,7 @@ class _CurrencyConverterState extends State<CurrencyConverter> {
                 ),
               ),
 
+              // Currency drop-down menu
               Padding(
                 padding: const EdgeInsets.all(10.0),
                 child: DropdownButton<String>(
